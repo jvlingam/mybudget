@@ -13,4 +13,9 @@ class LocalStorageService {
     final box = Hive.box<Expense>(boxName);
     return box.values.toList();
   }
+
+  static Future<void> clearAllExpenses() async {
+    final box = Hive.box<Expense>(boxName);
+    await box.clear();
+  }
 }

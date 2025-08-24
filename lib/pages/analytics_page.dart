@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../models/expense.dart';
 import '../services/local_storage_service.dart';
+import '../shared_widgets/empty_state_widget.dart';
 
 class AnalyticsPage extends StatelessWidget {
   const AnalyticsPage({super.key});
@@ -35,7 +36,7 @@ class AnalyticsPage extends StatelessWidget {
     ];
 
     if (total == 0.0) {
-      return const Center(child: Text('No data for pie chart.'));
+      return const EmptyStateWidget(message: 'No data available for category chart.');
     }
 
     int colorIndex = 0;
@@ -65,6 +66,10 @@ class AnalyticsPage extends StatelessWidget {
   }
 
   Widget _buildMonthlyBarChart(Map<int, double> monthlyTotals) {
+    if (monthlyTotals.isEmpty) {
+      return const EmptyStateWidget(message: 'No data available for monthly chart.');
+    }
+
     final maxY = monthlyTotals.values.fold(0.0, (a, b) => a > b ? a : b);
     return SizedBox(
       height: 250,
@@ -113,6 +118,15 @@ class AnalyticsPage extends StatelessWidget {
     final expenses = LocalStorageService.getExpenses();
     final categoryTotals = _getCategoryTotals(expenses);
     final monthlyTotals = _getMonthlyTotals(expenses);
+
+    if (expenses.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Analytics')),
+        body: const Center(
+          child: EmptyStateWidget(message: 'No expenses found to display analytics.'),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Analytics')),
