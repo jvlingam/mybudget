@@ -10,8 +10,7 @@ void main() async {
 
   Hive.registerAdapter(ExpenseAdapter());
 
-  // ✅ Delete the box from disk (for development only)
-  await Hive.deleteBoxFromDisk('expensesBox');
+  //await Hive.deleteBoxFromDisk('expensesBox');
 
   await Hive.openBox<Expense>('expensesBox');
 

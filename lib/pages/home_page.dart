@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Expense Tracker')),
+      appBar: AppBar(title: const Text('myBudget Tracker')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(children: [
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
             decoration: const InputDecoration(labelText: 'Title'),
           ),
           DropdownButtonFormField<String>(
-            value: _selectedCategory,
+            initialValue: _selectedCategory,
             items: _categories.map((cat) {
               return DropdownMenuItem(
                 value: cat,
@@ -131,7 +131,7 @@ class _HomePageState extends State<HomePage> {
               itemBuilder: (_, i) {
                 final e = _expenses[i];
                 return ListTile(
-                  title: Text(e.title),
+                  title: Text('${e.title} (${e.category})'),
                   subtitle: Text('${e.amount.toStringAsFixed(2)} • ${DateFormat.yMMMd().format(e.date)}'),
                 );
               },
