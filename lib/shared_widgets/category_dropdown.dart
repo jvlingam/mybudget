@@ -42,7 +42,7 @@ class CategoryDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: selectedCategory,
+      initialValue: selectedCategory,
       decoration: InputDecoration(
         labelText: 'Category',           // <-- this makes the label appear on top border
         border: const OutlineInputBorder(),

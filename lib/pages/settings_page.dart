@@ -24,7 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _isDarkMode = false;
   String _selectedCurrency = '₹';
 
-  final List<String> _currencies = ['₹', '\$', '€', '£', '¥', '₩', '₽'];
+  final List<String> _currencies = ['₹', '\$', '€', '£', '¥', '₽'];
 
   @override
   void initState() {

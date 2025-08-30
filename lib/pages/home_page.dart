@@ -8,7 +8,11 @@ import 'export_page.dart';
 import 'expense_details.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final ValueNotifier<String> currencyNotifier;
+  const HomePage({
+    super.key,
+    required this.currencyNotifier
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -36,7 +40,7 @@ class _HomePageState extends State<HomePage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ExpenseFormPage(existingExpense: existingExpense),
+        builder: (_) => ExpenseFormPage(existingExpense: existingExpense, currencyNotifier: widget.currencyNotifier),
       ),
     );
 
@@ -83,6 +87,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final currency = widget.currencyNotifier.value;
     return Scaffold(
       appBar: AppBar(
         title: const Text('myBudget Tracker'),
@@ -99,7 +104,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Text(
-              'Total: ₹${_totalAmount.toStringAsFixed(2)}',
+              'Total: $currency ${_totalAmount.toStringAsFixed(2)}',
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
@@ -113,7 +118,7 @@ class _HomePageState extends State<HomePage> {
                         return ListTile(
                           title: Text('${e.title} (${e.category})'),
                           subtitle: Text(
-                              '₹${e.amount.toStringAsFixed(2)} • ${DateFormat.yMMMd().format(e.date)}'),
+                              '$currency ${e.amount.toStringAsFixed(2)} • ${DateFormat.yMMMd().format(e.date)}'),
                           onTap: () => _openDetailsPage(e),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),

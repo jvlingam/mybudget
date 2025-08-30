@@ -8,8 +8,9 @@ import '../shared_widgets/snackbar_helper.dart';
 
 class ExpenseFormPage extends StatefulWidget {
   final Expense? existingExpense;
+  final ValueNotifier<String>? currencyNotifier;
 
-  const ExpenseFormPage({super.key, this.existingExpense});
+  const ExpenseFormPage({super.key, this.existingExpense, this.currencyNotifier});
 
   @override
   State<ExpenseFormPage> createState() => _ExpenseFormPageState();
@@ -20,6 +21,23 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
   final _amountController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
   String _selectedCategory = CategoryDropdown.categories.first;
+
+  _getCurrencyIcon(String currency) {
+    switch (currency) {
+      case '\$':
+        return Icons.attach_money;
+      case '€':
+        return Icons.euro;
+      case '£':
+        return Icons.currency_pound;
+      case '¥':
+        return Icons.currency_yen;
+      case '₽':
+        return Icons.currency_ruble;
+      default:
+        return Icons.currency_rupee;
+    }
+  }
 
   @override
   void initState() {
@@ -55,6 +73,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existingExpense != null;
+    final currency = widget.currencyNotifier?.value ?? '₹';
 
     return Scaffold(
       appBar: AppBar(
@@ -87,7 +106,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
             CustomTextField(
               controller: _amountController,
               label: 'Amount',
-              icon: Icons.currency_rupee,
+              icon: _getCurrencyIcon(currency),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 24),
