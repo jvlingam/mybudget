@@ -71,17 +71,38 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
       return;
     }
 
-    final expense = Expense(
-      title: title,
-      amount: amount,
-      date: _selectedDate,
-      category: _selectedCategory,
-      type: _selectedType == ExpenseType.income.name ? ExpenseType.income : ExpenseType.expense,
-      notes: _notesController.text.trim(),
-      attachmentPath: _attachment?.path,
-    );
+    if (widget.existingExpense != null) {
+      // ✅ Edit existing Hive object
+      final e = widget.existingExpense!;
+      e
+        ..title = title
+        ..amount = amount
+        ..date = _selectedDate
+        ..category = _selectedCategory
+        ..type = _selectedType == ExpenseType.income.name
+            ? ExpenseType.income
+            : ExpenseType.expense
+        ..notes = _notesController.text.trim()
+        ..attachmentPath = _attachment?.path;
 
-    Navigator.pop(context, expense);
+      await e.save(); // ✅ Now this will NOT throw HiveError
+      Navigator.pop(context, e); // Return the same object
+    } else {
+      // ✅ Create new expense
+      final newExpense = Expense(
+        title: title,
+        amount: amount,
+        date: _selectedDate,
+        category: _selectedCategory,
+        type: _selectedType == ExpenseType.income.name
+            ? ExpenseType.income
+            : ExpenseType.expense,
+        notes: _notesController.text.trim(),
+        attachmentPath: _attachment?.path,
+      );
+
+      Navigator.pop(context, newExpense);
+    }
   }
 
   @override
@@ -90,121 +111,125 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
     final currency = widget.currencyNotifier?.value ?? '₹';
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Expense' : 'Add Expense'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() => _selectedType = ExpenseType.income.name);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedType == ExpenseType.income.name
-                          ? Colors.green[600]
-                          : Colors.green[100],
-                      foregroundColor: _selectedType == ExpenseType.income.name
-                          ? Colors.white
-                          : Colors.green[800],
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => _selectedType = ExpenseType.income.name);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedType == ExpenseType.income.name
+                            ? Colors.green[600]
+                            : Colors.green[100],
+                        foregroundColor: _selectedType == ExpenseType.income.name
+                            ? Colors.white
+                            : Colors.green[800],
+                      ),
+                      child: const Text('Income'),
                     ),
-                    child: const Text('Income'),
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      setState(() => _selectedType = ExpenseType.expense.name);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _selectedType == ExpenseType.expense.name
-                          ? Colors.red[600]
-                          : Colors.red[100],
-                      foregroundColor: _selectedType == ExpenseType.expense.name
-                          ? Colors.white
-                          : Colors.red[800],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() => _selectedType = ExpenseType.expense.name);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _selectedType == ExpenseType.expense.name
+                            ? Colors.red[600]
+                            : Colors.red[100],
+                        foregroundColor: _selectedType == ExpenseType.expense.name
+                            ? Colors.white
+                            : Colors.red[800],
+                      ),
+                      child: const Text('Expense'),
                     ),
-                    child: const Text('Expense'),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            CustomTextField(
-              controller: _titleController,
-              label: 'Title',
-              icon: Icons.title,
-            ),
-            const SizedBox(height: 12),
-            CategoryDropdown(
-              categories: CategoryDropdown.defaultCategories,
-              selectedCategory: _selectedCategory,
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => _selectedCategory = val);
-                }
-              },
-            ),
-            const SizedBox(height: 12),
-            DatePickerField(
-              selectedDate: _selectedDate,
-              onDateSelected: (date) => setState(() => _selectedDate = date),
-            ),
-            const SizedBox(height: 12),
-            CustomTextField(
-              controller: _amountController,
-              label: 'Amount',
-              icon: _getCurrencyIcon(currency),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
-            
-            CustomTextField(
-              controller: _notesController,
-              label: 'Notes',
-              icon: Icons.note,
-              keyboardType: TextInputType.multiline,
-              maxLines: 5,
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    icon: const Icon(Icons.attach_file),
-                    label: Text(_attachment != null ? 'Attachment Selected' : 'Add Attachment'),
-                    onPressed: () async {
-                      final picker = ImagePicker();
-                      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+                ],
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(
+                controller: _titleController,
+                label: 'Title',
+                icon: Icons.title,
+              ),
+              const SizedBox(height: 12),
+              CategoryDropdown(
+                categories: CategoryDropdown.defaultCategories,
+                selectedCategory: _selectedCategory,
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _selectedCategory = val);
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              DatePickerField(
+                selectedDate: _selectedDate,
+                onDateSelected: (date) => setState(() => _selectedDate = date),
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(
+                controller: _amountController,
+                label: 'Amount',
+                icon: _getCurrencyIcon(currency),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 12),
+              CustomTextField(
+                controller: _notesController,
+                label: 'Notes',
+                icon: Icons.note,
+                keyboardType: TextInputType.multiline,
+                maxLines: 5,
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.attach_file),
+                      label: Text(_attachment != null ? 'Attachment Selected' : 'Add Attachment'),
+                      onPressed: () async {
+                        final picker = ImagePicker();
+                        final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-                      if (pickedFile != null) {
-                        setState(() {
-                          _attachment = File(pickedFile.path);
-                        });
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                        if (pickedFile != null) {
+                          setState(() {
+                            _attachment = File(pickedFile.path);
+                          });
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12), // spacing between buttons
-                Expanded(
-                  child: PrimaryButton(
-                    text: isEditing ? 'Update Expense' : 'Add Expense',
-                    onPressed: () async {
-                      await _submit();
-                    },
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: PrimaryButton(
+                      text: isEditing ? 'Update Expense' : 'Add Expense',
+                      onPressed: () async {
+                        await _submit();
+                      },
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

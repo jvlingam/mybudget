@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import '../models/expense.dart';
+import 'expense_form.dart';
 import '../shared_widgets/confirmation_dialog.dart';
 import '../shared_widgets/currency_text.dart';
 
 class ExpenseDetailsPage extends StatelessWidget {
   final Expense expense;
   final VoidCallback? onDelete;
-  final VoidCallback? onUpdate;
+  final void Function(Expense updatedExpense)? onUpdate;
   final VoidCallback? onEdit;
 
   const ExpenseDetailsPage({
@@ -18,6 +19,20 @@ class ExpenseDetailsPage extends StatelessWidget {
     this.onUpdate,
     this.onEdit,
   });
+
+void _navigateToEdit(BuildContext context) async {
+  final updatedExpense = await Navigator.push<Expense>(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ExpenseFormPage(existingExpense: expense),
+    ),
+  );
+
+  if (updatedExpense != null) {
+    onUpdate?.call(updatedExpense); // Notify parent about the change
+    Navigator.pop(context); // Close the details page
+  }
+}
 
   Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showConfirmationDialog(
@@ -41,7 +56,7 @@ class ExpenseDetailsPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
-            onPressed: onEdit,
+            onPressed: () => _navigateToEdit(context),
             tooltip: 'Edit Expense',
           ),
           IconButton(

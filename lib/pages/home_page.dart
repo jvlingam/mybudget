@@ -30,6 +30,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _loadExpenses() {
+    
     final expenses = LocalStorageService.getExpenses();
     final now = DateTime.now();
     final currentMonthExpenses = expenses.where((e) =>
@@ -93,7 +94,7 @@ class _HomePageState extends State<HomePage> {
         builder: (_) => ExpenseDetailsPage(
           expense: expense,
           onDelete: () => _deleteExpense(expense),
-          onUpdate: () => _loadExpenses(),
+          onUpdate: (updatedExpense) => _loadExpenses(),
           onEdit: () => _addOrEditExpense(existingExpense: expense), // Pass onEdit callback here
         ),
       ),
