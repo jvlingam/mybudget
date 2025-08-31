@@ -21,6 +21,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Expense> _expenses = [];
   double _totalAmount = 0.0;
+  double _monthlyBalance = 0.0;
 
   @override
   void initState() {
@@ -30,9 +31,23 @@ class _HomePageState extends State<HomePage> {
 
   void _loadExpenses() {
     final expenses = LocalStorageService.getExpenses();
+    final now = DateTime.now();
+    final currentMonthExpenses = expenses.where((e) =>
+      e.date.year == now.year && e.date.month == now.month);
+
+    double monthlyIncome = currentMonthExpenses
+      .where((e) => e.type == ExpenseType.income)
+      .fold(0.0, (sum, e) => sum + e.amount);
+
+    double monthlyExpense = currentMonthExpenses
+      .where((e) => e.type == ExpenseType.expense)
+      .fold(0.0, (sum, e) => sum + e.amount);
+
+    
     setState(() {
       _expenses = expenses;
       _totalAmount = expenses.fold(0.0, (sum, e) => sum + e.amount);
+      _monthlyBalance = monthlyIncome - monthlyExpense;
     });
   }
 
@@ -104,8 +119,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           children: [
             Text(
-              'Total: $currency ${_totalAmount.toStringAsFixed(2)}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              'Current Balance: $currency ${_monthlyBalance.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: _monthlyBalance >= 0 ? Colors.green : Colors.red,
+              ),
             ),
             const SizedBox(height: 10),
             Expanded(

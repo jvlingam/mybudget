@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 class CategoryDropdown extends StatelessWidget {
   final String selectedCategory;
   final ValueChanged<String?> onChanged;
+  final List<String> categories;
 
   const CategoryDropdown({
     super.key,
     required this.selectedCategory,
     required this.onChanged,
+    required this.categories,
   });
 
-  static const List<String> categories = [
+  static const List<String> defaultCategories = [
     'Food',
     'Transportation',
     'Entertainment',
@@ -42,11 +44,12 @@ class CategoryDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      initialValue: selectedCategory,
-      decoration: InputDecoration(
+      initialValue: categories.contains(selectedCategory) ? selectedCategory : categories.first,
+      decoration: const InputDecoration(
         labelText: 'Category',           // <-- this makes the label appear on top border
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        prefixIcon: Icon(Icons.category),
+        border: OutlineInputBorder(),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       ),
       items: categories.map((cat) {
         return DropdownMenuItem(

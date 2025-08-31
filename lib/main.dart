@@ -11,8 +11,10 @@ void main() async {
 
   await Hive.initFlutter();
   Hive.registerAdapter(ExpenseAdapter());
+  Hive.registerAdapter(ExpenseTypeAdapter());
+  
   await Hive.openBox<Expense>('expensesBox');
-
+  
   runApp(const MyApp());
 }
 

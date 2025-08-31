@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
 import '../models/expense.dart';
 import '../shared_widgets/confirmation_dialog.dart';
 import '../shared_widgets/currency_text.dart';
@@ -86,6 +87,32 @@ class ExpenseDetailsPage extends StatelessWidget {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            if (expense.notes.isNotEmpty) ...[
+              const Text(
+                'Notes',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                expense.notes,
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ],
+            if (expense.attachmentPath != null && expense.attachmentPath!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              const Text(
+                'Attachment',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Image.file(
+                File(expense.attachmentPath!),
+                width: double.infinity,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+            ],
           ],
         ),
       ),

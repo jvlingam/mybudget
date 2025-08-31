@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../models/expense.dart';
 import '../shared_widgets/custom_text_field.dart';
 import '../shared_widgets/date_picker_field.dart';
@@ -19,8 +21,12 @@ class ExpenseFormPage extends StatefulWidget {
 class _ExpenseFormPageState extends State<ExpenseFormPage> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
+  final _notesController = TextEditingController();
+  File? _attachment;
+
   DateTime _selectedDate = DateTime.now();
-  String _selectedCategory = CategoryDropdown.categories.first;
+  String _selectedCategory = CategoryDropdown.defaultCategories.first;
+  String _selectedType = ExpenseType.expense.name;
 
   _getCurrencyIcon(String currency) {
     switch (currency) {
@@ -48,6 +54,11 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
       _amountController.text = e.amount.toString();
       _selectedDate = e.date;
       _selectedCategory = e.category;
+      _selectedType = e.type.name;
+      _notesController.text = e.notes;
+      if (e.attachmentPath != null && e.attachmentPath!.isNotEmpty) {
+        _attachment = File(e.attachmentPath!);
+      }
     }
   }
 
@@ -65,6 +76,9 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
       amount: amount,
       date: _selectedDate,
       category: _selectedCategory,
+      type: _selectedType == ExpenseType.income.name ? ExpenseType.income : ExpenseType.expense,
+      notes: _notesController.text.trim(),
+      attachmentPath: _attachment?.path,
     );
 
     Navigator.pop(context, expense);
@@ -83,6 +97,44 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() => _selectedType = ExpenseType.income.name);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedType == ExpenseType.income.name
+                          ? Colors.green[600]
+                          : Colors.green[100],
+                      foregroundColor: _selectedType == ExpenseType.income.name
+                          ? Colors.white
+                          : Colors.green[800],
+                    ),
+                    child: const Text('Income'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() => _selectedType = ExpenseType.expense.name);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _selectedType == ExpenseType.expense.name
+                          ? Colors.red[600]
+                          : Colors.red[100],
+                      foregroundColor: _selectedType == ExpenseType.expense.name
+                          ? Colors.white
+                          : Colors.red[800],
+                    ),
+                    child: const Text('Expense'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             CustomTextField(
               controller: _titleController,
               label: 'Title',
@@ -90,6 +142,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
             ),
             const SizedBox(height: 12),
             CategoryDropdown(
+              categories: CategoryDropdown.defaultCategories,
               selectedCategory: _selectedCategory,
               onChanged: (val) {
                 if (val != null) {
@@ -109,12 +162,47 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
               icon: _getCurrencyIcon(currency),
               keyboardType: TextInputType.number,
             ),
+            const SizedBox(height: 12),
+            
+            CustomTextField(
+              controller: _notesController,
+              label: 'Notes',
+              icon: Icons.note,
+              keyboardType: TextInputType.multiline,
+              maxLines: 5,
+            ),
             const SizedBox(height: 24),
-            PrimaryButton(
-              text: isEditing ? 'Update Expense' : 'Add Expense',
-              onPressed: () async {
-                await _submit();
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.attach_file),
+                    label: Text(_attachment != null ? 'Attachment Selected' : 'Add Attachment'),
+                    onPressed: () async {
+                      final picker = ImagePicker();
+                      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+                      if (pickedFile != null) {
+                        setState(() {
+                          _attachment = File(pickedFile.path);
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12), // spacing between buttons
+                Expanded(
+                  child: PrimaryButton(
+                    text: isEditing ? 'Update Expense' : 'Add Expense',
+                    onPressed: () async {
+                      await _submit();
+                    },
+                  ),
+                ),
+              ],
             ),
           ],
         ),

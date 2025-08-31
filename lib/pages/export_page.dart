@@ -36,11 +36,18 @@ class _ExportPageState extends State<ExportPage> {
   void _applyFilters() {
     setState(() {
       _filteredExpenses = _allExpenses.where((e) {
-        final matchMonth = _selectedMonth == null ||
-            (e.date.month == _selectedMonth!.month &&
-                e.date.year == _selectedMonth!.year);
-        final matchCategory =
-            _selectedCategory == null || e.category == _selectedCategory;
+        bool matchMonth = true;
+        bool matchCategory = true;
+
+        if (_selectedMonth != null) {
+          matchMonth = e.date.year == _selectedMonth!.year &&
+                      e.date.month == _selectedMonth!.month;
+        }
+
+        if (_selectedCategory != null && _selectedCategory!.isNotEmpty) {
+          matchCategory = e.category == _selectedCategory;
+        }
+
         return matchMonth && matchCategory;
       }).toList();
     });
@@ -110,6 +117,7 @@ class _ExportPageState extends State<ExportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final exportCategories = ['All', ...CategoryDropdown.defaultCategories];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export Expenses'),
@@ -151,11 +159,13 @@ class _ExportPageState extends State<ExportPage> {
             const SizedBox(height: 12),
 
             // Category Dropdown (shared widget)
+            
             CategoryDropdown(
-              selectedCategory: _selectedCategory ?? CategoryDropdown.categories.first,
+              categories: exportCategories,
+              selectedCategory: _selectedCategory ?? '',
               onChanged: (val) {
                 setState(() {
-                  _selectedCategory = val;
+                  _selectedCategory = val == 'All' ? null : val;
                   _applyFilters();
                 });
               },
