@@ -6,7 +6,8 @@ import '../services/local_storage_service.dart';
 import '../shared_widgets/empty_state_widget.dart';
 
 class AnalyticsPage extends StatefulWidget {
-  const AnalyticsPage({super.key});
+  final ValueNotifier<String> currencyNotifier;
+  const AnalyticsPage({super.key, required this.currencyNotifier,});
 
   @override
   State<AnalyticsPage> createState() => _AnalyticsPageState();
@@ -176,6 +177,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   }
 
   Widget _buildLegend(Map<String, double> categoryTotals) {
+    final currency = widget.currencyNotifier.value;
     final colors = [
       Colors.red,
       Colors.blue,
@@ -205,14 +207,16 @@ class _AnalyticsPageState extends State<AnalyticsPage>
               ),
             ),
             const SizedBox(width: 6),
-            Text('${entry.key} (${entry.value.toStringAsFixed(2)})'),
+            Text('${entry.key} ($currency ${entry.value.toStringAsFixed(2)})'),
           ],
         );
       }).toList(),
     );
   }
 
-  Widget _buildAnalyticsTab(Map<String, double> data, String label) {
+  Widget _buildAnalyticsTab(
+      Map<String, double> data, String label, double totalAmount) {
+    final currency = widget.currencyNotifier.value;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: data.isEmpty
@@ -224,10 +228,20 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                   label,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  'Total: $currency ${totalAmount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
                 const SizedBox(height: 16),
                 Card(
                   elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(
@@ -254,10 +268,16 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     final expenseTotals = _getCategoryTotals(expenses);
     final incomeTotals = _getCategoryTotals(incomes);
 
+    final expenseTotalAmount =
+        expenseTotals.values.fold(0.0, (a, b) => a + b);
+    final incomeTotalAmount =
+        incomeTotals.values.fold(0.0, (a, b) => a + b);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Analytics'),
         centerTitle: true,
+        elevation: 1,
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -274,8 +294,16 @@ class _AnalyticsPageState extends State<AnalyticsPage>
             child: TabBarView(
               controller: _tabController,
               children: [
-                _buildAnalyticsTab(expenseTotals, 'Spending by Category'),
-                _buildAnalyticsTab(incomeTotals, 'Income by Category'),
+                _buildAnalyticsTab(
+                  expenseTotals,
+                  'Spending by Category',
+                  expenseTotalAmount,
+                ),
+                _buildAnalyticsTab(
+                  incomeTotals,
+                  'Income by Category',
+                  incomeTotalAmount,
+                ),
               ],
             ),
           ),

@@ -53,6 +53,8 @@ void _navigateToEdit(BuildContext context) async {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Details'),
+        centerTitle: true,
+        elevation: 1,
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),

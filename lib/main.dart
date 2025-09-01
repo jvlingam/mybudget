@@ -38,7 +38,7 @@ class _MyAppState extends State<MyApp> {
     super.initState();
     _pages = [
       HomePage(currencyNotifier: currencyNotifier),
-      const AnalyticsPage(),
+      AnalyticsPage(currencyNotifier: currencyNotifier),
       SettingsPage(
         themeNotifier: themeNotifier,
         currencyNotifier: currencyNotifier,

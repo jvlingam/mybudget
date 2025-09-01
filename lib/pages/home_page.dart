@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
   void _openAnalyticsPage() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const AnalyticsPage()),
+      MaterialPageRoute(builder: (_) => AnalyticsPage(currencyNotifier: widget.currencyNotifier)),
     );
   }
 
@@ -131,6 +131,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('myBudget Tracker'),
         centerTitle: true,
+        elevation: 1
       ),
       drawer: Drawer(
         child: ListView(

@@ -117,6 +117,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Expense' : 'Add Expense'),
         centerTitle: true,
+        elevation: 1,
       ),
       body: SafeArea(
         child: SingleChildScrollView(

@@ -121,6 +121,8 @@ class _ExportPageState extends State<ExportPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export Expenses'),
+        centerTitle: true,
+        elevation: 1,
         actions: [
           IconButton(
             icon: const Icon(Icons.clear),
