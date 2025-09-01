@@ -12,9 +12,9 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(ExpenseAdapter());
   Hive.registerAdapter(ExpenseTypeAdapter());
-  
+
   await Hive.openBox<Expense>('expensesBox');
-  
+
   runApp(const MyApp());
 }
 
@@ -28,6 +28,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   int _selectedIndex = 0;
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.system);
   final ValueNotifier<String> currencyNotifier = ValueNotifier('₹');
 
@@ -37,7 +38,10 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _pages = [
-      HomePage(currencyNotifier: currencyNotifier),
+      HomePage(
+        currencyNotifier: currencyNotifier,
+        scaffoldKey: _scaffoldKey,
+      ),
       AnalyticsPage(currencyNotifier: currencyNotifier),
       SettingsPage(
         themeNotifier: themeNotifier,
@@ -64,6 +68,7 @@ class _MyAppState extends State<MyApp> {
           darkTheme: ThemeData.dark(),
           themeMode: themeMode,
           home: Scaffold(
+            key: _scaffoldKey,
             body: _pages[_selectedIndex],
             bottomNavigationBar: BottomNavigationBar(
               currentIndex: _selectedIndex,

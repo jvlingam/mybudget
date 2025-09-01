@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../models/expense.dart';
 import '../services/local_storage_service.dart';
+import 'about_page.dart';
 import 'expense_form.dart';
 import 'export_page.dart';
 import 'expense_details.dart';
@@ -11,9 +12,12 @@ import 'settings_page.dart';
 
 class HomePage extends StatefulWidget {
   final ValueNotifier<String> currencyNotifier;
+  final GlobalKey<ScaffoldState> scaffoldKey;
+
   const HomePage({
     super.key,
     required this.currencyNotifier,
+    required this.scaffoldKey,
   });
 
   @override
@@ -52,7 +56,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _addOrEditExpense({Expense? existingExpense}) async {
     final result = await Navigator.push(
-      context,
+      widget.scaffoldKey.currentContext!,
       MaterialPageRoute(
         builder: (_) =>
             ExpenseFormPage(
@@ -83,15 +87,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openExportPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ExportPage()),
-    );
+    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Future.delayed(const Duration(milliseconds: 250), () {
+      Navigator.push(
+        widget.scaffoldKey.currentContext!,
+        MaterialPageRoute(builder: (_) => const ExportPage()),
+      );
+    });
   }
 
   void _openDetailsPage(Expense expense) {
     Navigator.push(
-      context,
+      widget.scaffoldKey.currentContext!,
       MaterialPageRoute(
         builder: (_) =>
             ExpenseDetailsPage(
@@ -105,22 +112,38 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openAnalyticsPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => AnalyticsPage(currencyNotifier: widget.currencyNotifier)),
-    );
+    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Future.delayed(const Duration(milliseconds: 250), () {
+      Navigator.push(
+        widget.scaffoldKey.currentContext!,
+        MaterialPageRoute(builder: (_) => AnalyticsPage(currencyNotifier: widget.currencyNotifier)),
+      );
+    });
   }
 
   void _openSettingsPage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SettingsPage(
-          themeNotifier: ValueNotifier(ThemeMode.system),
-          currencyNotifier: widget.currencyNotifier,
+    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Future.delayed(const Duration(milliseconds: 250), () {
+      Navigator.push(
+        widget.scaffoldKey.currentContext!,
+        MaterialPageRoute(
+          builder: (_) => SettingsPage(
+            themeNotifier: ValueNotifier(ThemeMode.system),
+            currencyNotifier: widget.currencyNotifier,
+          ),
         ),
-      ),
-    );
+      );
+    });
+  }
+
+  void _openAboutPage() {
+    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Future.delayed(const Duration(milliseconds: 250), () {
+      Navigator.push(
+        widget.scaffoldKey.currentContext!,
+        MaterialPageRoute(builder: (_) => const AboutPage()),
+      );
+    });
   }
 
   @override
@@ -131,7 +154,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('myBudget Tracker'),
         centerTitle: true,
-        elevation: 1
+        elevation: 1,
       ),
       drawer: Drawer(
         child: ListView(
@@ -157,50 +180,30 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.home),
               title: const Text('Home'),
               onTap: () {
-                Navigator.pop(context); // Close drawer
-                // Already on Home page; no navigation needed
+                Navigator.pop(widget.scaffoldKey.currentContext!);
+                // No navigation needed - already home
               },
             ),
             ListTile(
               leading: const Icon(Icons.bar_chart),
               title: const Text('Analytics'),
-              onTap: () {
-                Navigator.pop(context);
-                _openAnalyticsPage();
-              },
+              onTap: _openAnalyticsPage,
             ),
             ListTile(
               leading: const Icon(Icons.download),
               title: const Text('Export Data'),
-              onTap: () {
-                Navigator.pop(context);
-                _openExportPage();
-              },
+              onTap: _openExportPage,
             ),
             ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('Settings'),
-              onTap: () {
-                Navigator.pop(context);
-                _openSettingsPage();
-              },
+              onTap: _openSettingsPage,
             ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.info_outline),
               title: const Text('About'),
-              onTap: () {
-                Navigator.pop(context);
-                showAboutDialog(
-                  context: context,
-                  applicationName: 'myBudget Tracker',
-                  applicationVersion: '1.0.0',
-                  applicationIcon: const Icon(Icons.account_balance_wallet),
-                  children: [
-                    const Text('A simple app to track your income and expenses.'),
-                  ],
-                );
-              },
+              onTap: _openAboutPage,
             ),
           ],
         ),
@@ -216,13 +219,15 @@ class _HomePageState extends State<HomePage> {
               ),
               margin: const EdgeInsets.only(bottom: 16),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
                       'Current Balance',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     Text(
                       '$currency ${_monthlyBalance.toStringAsFixed(2)}',
@@ -239,42 +244,45 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               child: _expenses.isEmpty
                   ? const Center(
-                child: Text(
-                  'No expenses added yet.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              )
+                      child: Text(
+                        'No expenses added yet.',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
                   : ListView.builder(
-                itemCount: _expenses.length,
-                itemBuilder: (_, i) {
-                  final e = _expenses[i];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      itemCount: _expenses.length,
+                      itemBuilder: (_, i) {
+                        final e = _expenses[i];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: ListTile(
+                            leading: Icon(
+                              e.type == ExpenseType.income
+                                  ? Icons.arrow_downward
+                                  : Icons.arrow_upward,
+                              color: e.type == ExpenseType.income
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                            title: Text('${e.title} (${e.category})'),
+                            subtitle: Text(
+                              '$currency ${e.amount.toStringAsFixed(2)} • ${DateFormat.yMMMd().format(e.date)}',
+                            ),
+                            trailing: IconButton(
+                              icon:
+                                  const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteExpense(e),
+                              tooltip: 'Delete Expense',
+                            ),
+                            onTap: () => _openDetailsPage(e),
+                          ),
+                        );
+                      },
                     ),
-                    child: ListTile(
-                      leading: Icon(
-                        e.type == ExpenseType.income
-                            ? Icons.arrow_downward
-                            : Icons.arrow_upward,
-                        color: e.type == ExpenseType.income ? Colors.green : Colors.red,
-                      ),
-                      title: Text('${e.title} (${e.category})'),
-                      subtitle: Text(
-                        '$currency ${e.amount.toStringAsFixed(2)} • ${DateFormat.yMMMd().format(e.date)}',
-                      ),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteExpense(e),
-                        tooltip: 'Delete Expense',
-                      ),
-                      onTap: () => _openDetailsPage(e),
-                    ),
-                  );
-                },
-              ),
             ),
           ],
         ),

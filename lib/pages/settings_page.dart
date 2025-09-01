@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/local_storage_service.dart';
 import '../shared_widgets/confirmation_dialog.dart';
@@ -141,6 +142,28 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
+  Future<void> _sendEmail({required String subject, String? body}) async {
+    final String encodedSubject = Uri.encodeComponent(subject);
+    final String encodedBody = Uri.encodeComponent(body ?? '');
+
+    final Uri emailUri = Uri.parse(
+      'mailto:jvlingam@gmail.com?subject=$encodedSubject&body=$encodedBody',
+    );
+
+    print('Launching email URI: $emailUri');
+
+    if (await launchUrl(emailUri, mode: LaunchMode.externalApplication)) {
+      // success
+    } else {
+      if (context.mounted) {
+        SnackbarHelper.showError(
+          context,
+          'No email app found. Please install Gmail or another email client.',
+        );
+      }
+    }
+  }
+
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -185,6 +208,36 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: Text('Selected: $_selectedCurrency'),
             trailing: const Icon(Icons.chevron_right),
             onTap: _openCurrencySelector,
+          ),
+          const Divider(height: 1),
+
+          // Support section
+          _buildSectionHeader("Support"),
+          ListTile(
+            leading: const Icon(Icons.email),
+            title: const Text("Contact Us"),
+            onTap: () => _sendEmail(
+              subject: 'Contact Request - myBudget Tracker App',
+            ),
+          ),
+          const Divider(height: 1),
+
+          ListTile(
+            leading: const Icon(Icons.feedback),
+            title: const Text("Submit Feedback"),
+            onTap: () => _sendEmail(
+              subject: 'User Feedback - myBudget Tracker App',
+            ),
+          ),
+          const Divider(height: 1),
+
+          ListTile(
+            leading: const Icon(Icons.bug_report),
+            title: const Text("Report a Bug"),
+            onTap: () => _sendEmail(
+              subject: 'Bug Report - myBudget Tracker App',
+              body: 'Please describe the issue you faced:\n\nSteps to reproduce:\n1. \n2. \n\nExpected result:\n\nActual result:\n',
+            ),
           ),
           const Divider(height: 1),
 
