@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:csv/csv.dart';
+import 'package:month_picker_dialog/month_picker_dialog.dart';
 
 import '../models/expense.dart';
 import '../services/local_storage_service.dart';
@@ -59,6 +60,7 @@ class _ExportPageState extends State<ExportPage> {
       _selectedMonth = null;
       _filteredExpenses = _allExpenses;
     });
+    _applyFilters(); // Reapply after clearing
   }
 
   Future<void> _exportCSV() async {
@@ -125,7 +127,7 @@ class _ExportPageState extends State<ExportPage> {
         elevation: 1,
         actions: [
           IconButton(
-            icon: const Icon(Icons.clear),
+            icon: const Icon(Icons.filter_alt_off),
             tooltip: 'Clear Filters',
             onPressed: _clearFilters,
           )
@@ -144,12 +146,11 @@ class _ExportPageState extends State<ExportPage> {
               ),
               trailing: const Icon(Icons.calendar_today),
               onTap: () async {
-                final picked = await showDatePicker(
+                final picked = await showMonthPicker(
                   context: context,
-                  initialDate: DateTime.now(),
+                  initialDate: _selectedMonth ?? DateTime.now(),
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
-                  initialEntryMode: DatePickerEntryMode.calendar,
                 );
                 if (picked != null) {
                   setState(() => _selectedMonth = picked);

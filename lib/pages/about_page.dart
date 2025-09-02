@@ -21,7 +21,7 @@ class AboutPage extends StatelessWidget {
             const Icon(Icons.account_balance_wallet, size: 80),
             const SizedBox(height: 16),
             Text(
-              'myBudget Tracker',
+              'MyBudget Tracker',
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),

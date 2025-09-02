@@ -63,7 +63,7 @@ class _MyAppState extends State<MyApp> {
       builder: (context, themeMode, _) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'myBudget Tracker',
+          title: 'MyBudget Tracker',
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
           themeMode: themeMode,

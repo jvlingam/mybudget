@@ -217,7 +217,7 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const Icon(Icons.email),
             title: const Text("Contact Us"),
             onTap: () => _sendEmail(
-              subject: 'Contact Request - myBudget Tracker App',
+              subject: 'Contact Request - MyBudget Tracker App',
             ),
           ),
           const Divider(height: 1),
@@ -226,7 +226,7 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const Icon(Icons.feedback),
             title: const Text("Submit Feedback"),
             onTap: () => _sendEmail(
-              subject: 'User Feedback - myBudget Tracker App',
+              subject: 'User Feedback - MyBudget Tracker App',
             ),
           ),
           const Divider(height: 1),
@@ -235,7 +235,7 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const Icon(Icons.bug_report),
             title: const Text("Report a Bug"),
             onTap: () => _sendEmail(
-              subject: 'Bug Report - myBudget Tracker App',
+              subject: 'Bug Report - MyBudget Tracker App',
               body: 'Please describe the issue you faced:\n\nSteps to reproduce:\n1. \n2. \n\nExpected result:\n\nActual result:\n',
             ),
           ),

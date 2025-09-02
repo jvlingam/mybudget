@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../models/expense.dart';
 import '../services/local_storage_service.dart';
+import 'compare_months_page.dart';
 import 'about_page.dart';
 import 'expense_form.dart';
 import 'export_page.dart';
@@ -36,6 +37,10 @@ class _HomePageState extends State<HomePage> {
 
   void _loadExpenses() {
     final expenses = LocalStorageService.getExpenses();
+
+    // Sort expenses by date descending
+    expenses.sort((a, b) => b.date.compareTo(a.date));
+
     final now = DateTime.now();
     final currentMonthExpenses = expenses.where((e) =>
         e.date.year == now.year && e.date.month == now.month);
@@ -56,7 +61,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _addOrEditExpense({Expense? existingExpense}) async {
     final result = await Navigator.push(
-      widget.scaffoldKey.currentContext!,
+      context,
       MaterialPageRoute(
         builder: (_) =>
             ExpenseFormPage(
@@ -87,10 +92,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openExportPage() {
-    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Navigator.pop(context); // Close drawer
     Future.delayed(const Duration(milliseconds: 250), () {
       Navigator.push(
-        widget.scaffoldKey.currentContext!,
+        context,
         MaterialPageRoute(builder: (_) => const ExportPage()),
       );
     });
@@ -98,7 +103,7 @@ class _HomePageState extends State<HomePage> {
 
   void _openDetailsPage(Expense expense) {
     Navigator.push(
-      widget.scaffoldKey.currentContext!,
+      context,
       MaterialPageRoute(
         builder: (_) =>
             ExpenseDetailsPage(
@@ -112,20 +117,20 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openAnalyticsPage() {
-    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Navigator.pop(context); // Close drawer
     Future.delayed(const Duration(milliseconds: 250), () {
       Navigator.push(
-        widget.scaffoldKey.currentContext!,
+        context,
         MaterialPageRoute(builder: (_) => AnalyticsPage(currencyNotifier: widget.currencyNotifier)),
       );
     });
   }
 
   void _openSettingsPage() {
-    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Navigator.pop(context); // Close drawer
     Future.delayed(const Duration(milliseconds: 250), () {
       Navigator.push(
-        widget.scaffoldKey.currentContext!,
+        context,
         MaterialPageRoute(
           builder: (_) => SettingsPage(
             themeNotifier: ValueNotifier(ThemeMode.system),
@@ -137,11 +142,21 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openAboutPage() {
-    Navigator.pop(widget.scaffoldKey.currentContext!); // Close drawer
+    Navigator.pop(context); // Close drawer
     Future.delayed(const Duration(milliseconds: 250), () {
       Navigator.push(
-        widget.scaffoldKey.currentContext!,
+        context,
         MaterialPageRoute(builder: (_) => const AboutPage()),
+      );
+    });
+  }
+
+  void _openCompareMonthsPage() {
+    Navigator.pop(context); // Close drawer
+    Future.delayed(const Duration(milliseconds: 250), () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const CompareMonthsPage()),
       );
     });
   }
@@ -152,9 +167,21 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('myBudget Tracker'),
+        title: const Text('MyBudget Tracker'),
         centerTitle: true,
         elevation: 1,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Export Data',
+            onPressed: () {
+              Navigator.push(
+                context,  // use `context` here, NOT widget.scaffoldKey.currentContext
+                MaterialPageRoute(builder: (_) => const ExportPage()),
+              );
+            },
+          ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -167,7 +194,7 @@ class _HomePageState extends State<HomePage> {
               child: const Align(
                 alignment: Alignment.bottomLeft,
                 child: Text(
-                  'myBudget Tracker',
+                  'MyBudget Tracker',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 24,
@@ -180,7 +207,7 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.home),
               title: const Text('Home'),
               onTap: () {
-                Navigator.pop(widget.scaffoldKey.currentContext!);
+                Navigator.pop(context);
                 // No navigation needed - already home
               },
             ),
@@ -188,6 +215,11 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.bar_chart),
               title: const Text('Analytics'),
               onTap: _openAnalyticsPage,
+            ),
+            ListTile(
+              leading: const Icon(Icons.compare_arrows),
+              title: const Text('Compare Months'),
+              onTap: _openCompareMonthsPage,
             ),
             ListTile(
               leading: const Icon(Icons.download),

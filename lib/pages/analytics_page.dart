@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+
 import '../models/expense.dart';
 import '../services/local_storage_service.dart';
 import '../shared_widgets/empty_state_widget.dart';
 
 class AnalyticsPage extends StatefulWidget {
   final ValueNotifier<String> currencyNotifier;
-  const AnalyticsPage({super.key, required this.currencyNotifier,});
+
+  const AnalyticsPage({
+    super.key,
+    required this.currencyNotifier,
+  });
 
   @override
   State<AnalyticsPage> createState() => _AnalyticsPageState();
@@ -63,26 +68,44 @@ class _AnalyticsPageState extends State<AnalyticsPage>
     return expenses.where((e) {
       if (e.type != type) return false;
 
+      final expenseDate = DateTime(e.date.year, e.date.month, e.date.day);
+
       switch (_selectedDateFilter) {
         case 'Today':
-          return e.date.year == now.year &&
-              e.date.month == now.month &&
-              e.date.day == now.day;
+          return expenseDate == DateTime(now.year, now.month, now.day);
+
         case 'This Week':
-          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+          final startOfWeek = DateTime(now.year, now.month, now.day)
+              .subtract(Duration(days: now.weekday - 1));
           final endOfWeek = startOfWeek.add(const Duration(days: 6));
-          return e.date.isAfter(startOfWeek.subtract(const Duration(seconds: 1))) &&
-              e.date.isBefore(endOfWeek.add(const Duration(days: 1)));
+
+          return expenseDate.isAtSameMomentAs(startOfWeek) ||
+              expenseDate.isAtSameMomentAs(endOfWeek) ||
+              (expenseDate.isAfter(startOfWeek) &&
+                  expenseDate.isBefore(endOfWeek));
+
         case 'This Month':
-          return e.date.year == now.year && e.date.month == now.month;
+          return expenseDate.year == now.year &&
+              expenseDate.month == now.month;
+
         case 'This Year':
-          return e.date.year == now.year;
+          return expenseDate.year == now.year;
+
         case 'Custom Range':
           if (_customDateRange == null) return true;
-          final start = _customDateRange!.start;
-          final end = _customDateRange!.end.add(const Duration(days: 1));
-          return e.date.isAfter(start.subtract(const Duration(seconds: 1))) &&
-              e.date.isBefore(end);
+          final start = DateTime(
+              _customDateRange!.start.year,
+              _customDateRange!.start.month,
+              _customDateRange!.start.day);
+          final end = DateTime(
+              _customDateRange!.end.year,
+              _customDateRange!.end.month,
+              _customDateRange!.end.day);
+
+          return expenseDate.isAtSameMomentAs(start) ||
+              expenseDate.isAtSameMomentAs(end) ||
+              (expenseDate.isAfter(start) && expenseDate.isBefore(end));
+
         case 'Overall':
         default:
           return true;
@@ -131,7 +154,7 @@ class _AnalyticsPageState extends State<AnalyticsPage>
                 '${DateFormat.yMMMd().format(_customDateRange!.start)} - ${DateFormat.yMMMd().format(_customDateRange!.end)}',
                 style: const TextStyle(fontStyle: FontStyle.italic, fontSize: 12),
               ),
-            )
+            ),
         ],
       ),
     );
@@ -217,44 +240,43 @@ class _AnalyticsPageState extends State<AnalyticsPage>
   Widget _buildAnalyticsTab(
       Map<String, double> data, String label, double totalAmount) {
     final currency = widget.currencyNotifier.value;
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: data.isEmpty
-          ? const EmptyStateWidget(message: 'No data found.')
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Total: $currency ${totalAmount.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 250, child: _buildPieChart(data)),
-                        const SizedBox(height: 16),
-                        _buildLegend(data),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Total: $currency ${totalAmount.toStringAsFixed(2)}',
+            style: const TextStyle(
+              fontSize: 16,
+              fontStyle: FontStyle.italic,
             ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 2,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                children: [
+                  SizedBox(height: 250, child: _buildPieChart(data)),
+                  const SizedBox(height: 16),
+                  _buildLegend(data),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -286,28 +308,30 @@ class _AnalyticsPageState extends State<AnalyticsPage>
           ],
         ),
       ),
-      body: Column(
-        children: [
-          _buildFilterSelector(),
-          const Divider(height: 0),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildAnalyticsTab(
-                  expenseTotals,
-                  'Spending by Category',
-                  expenseTotalAmount,
-                ),
-                _buildAnalyticsTab(
-                  incomeTotals,
-                  'Income by Category',
-                  incomeTotalAmount,
-                ),
-              ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildFilterSelector(),
+            const Divider(height: 0),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildAnalyticsTab(
+                    expenseTotals,
+                    'Spending by Category',
+                    expenseTotalAmount,
+                  ),
+                  _buildAnalyticsTab(
+                    incomeTotals,
+                    'Income by Category',
+                    incomeTotalAmount,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
