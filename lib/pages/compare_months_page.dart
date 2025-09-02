@@ -13,71 +13,88 @@ class CompareMonthsPage extends StatefulWidget {
 }
 
 class _CompareMonthsPageState extends State<CompareMonthsPage> {
-  DateTime? _month1;
-  DateTime? _month2;
+  List<DateTime> _selectedMonths = [];
+  List<Expense> _allExpenses = [];
+  List<String> _categories = [];
 
-  double _incomeMonth1 = 0.0;
-  double _expenseMonth1 = 0.0;
-  double _incomeMonth2 = 0.0;
-  double _expenseMonth2 = 0.0;
+  // Map<Category, Map<YYYY-MM, totalAmount>>
+  Map<String, Map<String, double>> _comparisonData = {};
 
-  bool _showTable = false;
+  @override
+  void initState() {
+    super.initState();
+    _allExpenses = LocalStorageService.getExpenses();
+    _categories = _allExpenses
+        .map((e) => e.category)
+        .toSet()
+        .toList()
+      ..sort();
+  }
 
-  void _pickMonth(int slot) async {
-    
+  Future<void> _pickMonth() async {
     final picked = await showMonthPicker(
       context: context,
+      initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      initialDate: (slot == 1 ? _month1 : _month2) ?? DateTime.now(),
-    ).then((picked) {
-      if (picked != null) {
+    );
+
+    if (picked != null) {
+      // Check duplicate by year & month
+      final exists = _selectedMonths.any(
+          (m) => m.year == picked.year && m.month == picked.month);
+
+      if (!exists) {
         setState(() {
-          if (slot == 1) {
-            _month1 = picked;
-          } else {
-            _month2 = picked;
-          }
+          _selectedMonths.add(picked);
+          _selectedMonths.sort((a, b) => a.compareTo(b));
+          _buildComparisonData();
         });
       }
+    }
+  }
+
+  void _removeMonth(DateTime month) {
+    setState(() {
+      _selectedMonths.removeWhere(
+          (m) => m.year == month.year && m.month == month.month);
+      _buildComparisonData();
     });
   }
 
-  void _compare() {
-    if (_month1 == null || _month2 == null) return;
+  void _buildComparisonData() {
+    // Clear previous data
+    _comparisonData.clear();
 
-    final allExpenses = LocalStorageService.getExpenses();
-
-    List<Expense> getMonthData(DateTime month) {
-      return allExpenses.where((e) =>
-          e.date.year == month.year && e.date.month == month.month).toList();
+    // For each category, initialize empty map
+    for (final category in _categories) {
+      _comparisonData[category] = {};
+      for (final month in _selectedMonths) {
+        final key = DateFormat('yyyy-MM').format(month);
+        _comparisonData[category]![key] = 0;
+      }
     }
 
-    final m1Expenses = getMonthData(_month1!);
-    final m2Expenses = getMonthData(_month2!);
+    // Sum expenses by category and month
+    for (final expense in _allExpenses) {
+      final expenseMonth = DateFormat('yyyy-MM').format(expense.date);
+      final isMonthSelected = _selectedMonths.any((m) =>
+          DateFormat('yyyy-MM').format(m) == expenseMonth);
 
-    _incomeMonth1 = m1Expenses
-        .where((e) => e.type == ExpenseType.income)
-        .fold(0.0, (sum, e) => sum + e.amount);
-    _expenseMonth1 = m1Expenses
-        .where((e) => e.type == ExpenseType.expense)
-        .fold(0.0, (sum, e) => sum + e.amount);
-
-    _incomeMonth2 = m2Expenses
-        .where((e) => e.type == ExpenseType.income)
-        .fold(0.0, (sum, e) => sum + e.amount);
-    _expenseMonth2 = m2Expenses
-        .where((e) => e.type == ExpenseType.expense)
-        .fold(0.0, (sum, e) => sum + e.amount);
-
-    setState(() {
-      _showTable = true;
-    });
+      if (isMonthSelected) {
+        final category = expense.category;
+        final amount = expense.amount;
+        final catMap = _comparisonData[category];
+        if (catMap != null) {
+          catMap[expenseMonth] = (catMap[expenseMonth] ?? 0) + amount;
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final currency = '₹'; // Replace with dynamic currency if needed
+    final monthFormatter = DateFormat.yMMM();
 
     return Scaffold(
       appBar: AppBar(
@@ -86,131 +103,70 @@ class _CompareMonthsPageState extends State<CompareMonthsPage> {
         elevation: 1,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: ListTile(
-                    title: Text(_month1 == null
-                        ? 'Select Month 1'
-                        : DateFormat.yMMM().format(_month1!)),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: () => _pickMonth(1),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ListTile(
-                    title: Text(_month2 == null
-                        ? 'Select Month 2'
-                        : DateFormat.yMMM().format(_month2!)),
-                    trailing: const Icon(Icons.calendar_today),
-                    onTap: () => _pickMonth(2),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            // Button to add month
             ElevatedButton.icon(
-              icon: const Icon(Icons.compare),
-              label: const Text('Compare'),
-              onPressed:
-                  _month1 != null && _month2 != null ? _compare : null,
+              onPressed: _pickMonth,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Month to Compare'),
             ),
-            const SizedBox(height: 32),
-            if (_showTable)
-              Table(
-                border: TableBorder.all(color: Colors.grey.shade300),
-                columnWidths: const {
-                  0: FlexColumnWidth(2),
-                  1: FlexColumnWidth(2),
-                  2: FlexColumnWidth(2),
-                },
-                children: [
-                  TableRow(
-                    decoration: BoxDecoration(color: Colors.grey.shade200),
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          'Category',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(DateFormat.yMMM().format(_month1!),
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(DateFormat.yMMM().format(_month2!),
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                  TableRow(children: [
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('Income'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('$currency ${_incomeMonth1.toStringAsFixed(2)}'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('$currency ${_incomeMonth2.toStringAsFixed(2)}'),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('Expenses'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('$currency ${_expenseMonth1.toStringAsFixed(2)}'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text('$currency ${_expenseMonth2.toStringAsFixed(2)}'),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Text('Balance'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        '$currency ${(_incomeMonth1 - _expenseMonth1).toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: (_incomeMonth1 - _expenseMonth1) >= 0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
+
+            const SizedBox(height: 12),
+
+            // Show selected months as chips with remove button
+            Wrap(
+              spacing: 8,
+              children: _selectedMonths.map((month) {
+                return Chip(
+                  label: Text(monthFormatter.format(month)),
+                  onDeleted: () => _removeMonth(month),
+                );
+              }).toList(),
+            ),
+
+            const SizedBox(height: 24),
+
+            Expanded(
+              child: _selectedMonths.isEmpty
+                  ? const Center(
+                      child: Text('Please add months to compare.'),
+                    )
+                  : SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: [
+                          const DataColumn(label: Text('Category')),
+                          ..._selectedMonths.map(
+                            (m) => DataColumn(
+                              label: Text(monthFormatter.format(m)),
+                            ),
+                          ),
+                        ],
+                        rows: _categories.map(
+                          (category) {
+                            return DataRow(
+                              cells: [
+                                DataCell(Text(category)),
+                                ..._selectedMonths.map(
+                                  (month) {
+                                    final key =
+                                        DateFormat('yyyy-MM').format(month);
+                                    final amount =
+                                        _comparisonData[category]?[key] ?? 0;
+                                    return DataCell(
+                                      Text('₹${amount.toStringAsFixed(2)}'),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        ).toList(),
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        '$currency ${(_incomeMonth2 - _expenseMonth2).toStringAsFixed(2)}',
-                        style: TextStyle(
-                          color: (_incomeMonth2 - _expenseMonth2) >= 0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      ),
-                    ),
-                  ]),
-                ],
-              ),
+            ),
           ],
         ),
       ),
