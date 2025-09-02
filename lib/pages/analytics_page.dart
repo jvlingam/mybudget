@@ -6,6 +6,8 @@ import '../models/expense.dart';
 import '../services/local_storage_service.dart';
 import '../shared_widgets/empty_state_widget.dart';
 
+import 'compare_months_page.dart';
+
 class AnalyticsPage extends StatefulWidget {
   final ValueNotifier<String> currencyNotifier;
 
@@ -300,6 +302,18 @@ class _AnalyticsPageState extends State<AnalyticsPage>
         title: const Text('Analytics'),
         centerTitle: true,
         elevation: 1,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.compare_arrows),
+            tooltip: 'Compare Months',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CompareMonthsPage()),
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
