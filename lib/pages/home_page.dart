@@ -10,6 +10,7 @@ import 'export_page.dart';
 import 'expense_details.dart';
 import 'analytics_page.dart';
 import 'settings_page.dart';
+import 'manage_categories.dart';
 
 class HomePage extends StatefulWidget {
   final ValueNotifier<String> currencyNotifier;
@@ -161,6 +162,16 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  void _openManageCategoriesPage() {
+    Navigator.pop(context); // Close drawer
+    Future.delayed(const Duration(milliseconds: 250), () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ManageCategoriesPage()),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final currency = widget.currencyNotifier.value;
@@ -220,6 +231,11 @@ class _HomePageState extends State<HomePage> {
               leading: const Icon(Icons.compare_arrows),
               title: const Text('Compare Months'),
               onTap: _openCompareMonthsPage,
+            ),
+            ListTile(
+              leading: const Icon(Icons.category),
+              title: const Text('Manage Categories'),
+              onTap: _openManageCategoriesPage,
             ),
             ListTile(
               leading: const Icon(Icons.download),

@@ -23,7 +23,8 @@ class ExportPage extends StatefulWidget {
 class _ExportPageState extends State<ExportPage> {
   List<Expense> _allExpenses = [];
   List<Expense> _filteredExpenses = [];
-
+  List<String> _allCategories = ['All'];
+  
   String? _selectedCategory;
   DateTime? _selectedMonth;
 
@@ -32,6 +33,14 @@ class _ExportPageState extends State<ExportPage> {
     super.initState();
     _allExpenses = LocalStorageService.getExpenses();
     _filteredExpenses = _allExpenses;
+    _loadCategories();
+  }
+
+  void _loadCategories() {
+  final dynamicCategories = CategoryService.getCategories();
+    setState(() {
+      _allCategories = ['All', ...dynamicCategories];
+    });
   }
 
   void _applyFilters() {
@@ -119,7 +128,7 @@ class _ExportPageState extends State<ExportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final exportCategories = ['All', ...CategoryDropdown.defaultCategories];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Export Expenses'),
@@ -163,9 +172,20 @@ class _ExportPageState extends State<ExportPage> {
 
             // Category Dropdown (shared widget)
             
-            CategoryDropdown(
-              categories: exportCategories,
-              selectedCategory: _selectedCategory ?? '',
+            DropdownButtonFormField<String>(
+              value: _selectedCategory ?? 'All',
+              decoration: const InputDecoration(
+                labelText: 'Category',
+                prefixIcon: Icon(Icons.category),
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              ),
+              items: _allCategories.map((cat) {
+                return DropdownMenuItem(
+                  value: cat,
+                  child: Text(cat),
+                );
+              }).toList(),
               onChanged: (val) {
                 setState(() {
                   _selectedCategory = val == 'All' ? null : val;

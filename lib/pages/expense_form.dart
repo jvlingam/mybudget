@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../models/expense.dart';
+import '../services/local_storage_service.dart';
 import '../shared_widgets/custom_text_field.dart';
 import '../shared_widgets/date_picker_field.dart';
 import '../shared_widgets/category_dropdown.dart';
@@ -29,7 +30,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
   File? _attachment;
 
   DateTime _selectedDate = DateTime.now();
-  String _selectedCategory = CategoryDropdown.defaultCategories.first;
+  String? _selectedCategory;
   String _selectedType = ExpenseType.expense.name;
 
   _getCurrencyIcon(String currency) {
@@ -63,6 +64,15 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
       if (e.attachmentPath != null && e.attachmentPath!.isNotEmpty) {
         _attachment = File(e.attachmentPath!);
       }
+    } else {
+      // Load from Hive category box
+      final categories = CategoryService.getCategories();
+
+      if (categories.isNotEmpty) {
+        _selectedCategory = categories.first;
+      } else {
+        _selectedCategory = 'Other'; // fallback
+      }
     }
   }
 
@@ -81,7 +91,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
         ..title = title
         ..amount = amount
         ..date = _selectedDate
-        ..category = _selectedCategory
+        ..category = _selectedCategory ?? 'Other'
         ..type = _selectedType == ExpenseType.income.name
             ? ExpenseType.income
             : ExpenseType.expense
@@ -95,7 +105,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
         title: title,
         amount: amount,
         date: _selectedDate,
-        category: _selectedCategory,
+        category: _selectedCategory ?? 'Other',
         type: _selectedType == ExpenseType.income.name
             ? ExpenseType.income
             : ExpenseType.expense,
@@ -182,8 +192,7 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
                       ),
                       const SizedBox(height: 12),
                       CategoryDropdown(
-                        categories: CategoryDropdown.defaultCategories,
-                        selectedCategory: _selectedCategory,
+                        selectedCategory: _selectedCategory ?? 'Other',
                         onChanged: (val) {
                           if (val != null) {
                             setState(() => _selectedCategory = val);

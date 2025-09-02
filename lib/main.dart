@@ -5,6 +5,7 @@ import 'models/expense.dart';
 import 'pages/home_page.dart';
 import 'pages/analytics_page.dart';
 import 'pages/settings_page.dart';
+import 'services/local_storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,6 +15,7 @@ void main() async {
   Hive.registerAdapter(ExpenseTypeAdapter());
 
   await Hive.openBox<Expense>('expensesBox');
+  await CategoryService.initialize();
 
   runApp(const MyApp());
 }
