@@ -1,16 +1,29 @@
-# mybudget
+# MyBudget
 
-A new Flutter project.
+A Simple and powerful budgeting app to track your expenses and manage your finances.
 
-## Getting Started
+## Release Notes
 
-This project is a starting point for a Flutter application.
+## v1.0.0
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+*Features:*
+1. Add new Expense/Income
+2. Export all the Expenses(it includes income as well) in PDF or CSV file
+	i) Month based export or overall
+	ii) Filter Category to export or All
+3. Analytics to show Income/Expense in Pie Chart View with legends
+ 	i) Following options available to visualize the piechart
+		a) Today
+		b) This Week
+		c) This Month
+		d) This Year
+		e) Custom Range
+4. Settings available to enable the following:
+	i) Dark Mode
+	ii) Currency Selection
+	iii) Support & Feedback
+	iv) Clear All Expenses
+5. Compare One or more than One Month(s) on the Expenses for each category.
+6. Manage Categories for the Expense/Income creation.
+	i) Default Categories (which are not allowed to be removed)
+	ii) Custom Categories (User has the flexibility to manage as they need)

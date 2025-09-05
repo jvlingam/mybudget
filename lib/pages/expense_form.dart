@@ -85,12 +85,22 @@ class _ExpenseFormPageState extends State<ExpenseFormPage> {
       return;
     }
 
+    final now = DateTime.now();
+    final fullDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      now.hour,
+      now.minute,
+      now.second,
+    );
+
     if (widget.existingExpense != null) {
       final e = widget.existingExpense!;
       e
         ..title = title
         ..amount = amount
-        ..date = _selectedDate
+        ..date = fullDateTime
         ..category = _selectedCategory ?? 'Other'
         ..type = _selectedType == ExpenseType.income.name
             ? ExpenseType.income
