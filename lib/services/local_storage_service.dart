@@ -28,7 +28,7 @@ class CategoryService {
 
   static const List<String> defaultCategories = [
     'Clothing', 'Electronics', 'Entertainment', 'Education',
-    'Food', 'Fruits', 'Gift', 'Health', 'Insurance', 'Internet',
+    'Food', 'Fruits', 'Gift', 'Groceries', 'Health', 'Insurance', 'Internet',
     'Investments', 'Kids', 'Phone', 'Pets', 'Repairs', 'Salary', 'Savings',
     'Snacks', 'Sports', 'Shopping', 'Transportation', 'Travel', 'Vehicles',
     'Vegetables', 'Other',
